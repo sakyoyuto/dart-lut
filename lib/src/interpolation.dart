@@ -43,15 +43,15 @@ class Interpolation {
     final yd = (y - y0) / (y1 - y0);
     final zd = (z - z0) / (z1 - z0);
 
-    final c00 = c000 * (1.0 - xd) + c100 * xd;
-    final c01 = c001 * (1.0 - xd) + c101 * xd;
-    final c10 = c010 * (1.0 - xd) + c110 * xd;
-    final c11 = c011 * (1.0 - xd) + c111 * xd;
+    final num c00 = c000 * (1.0 - xd) + c100 * xd;
+    final num c01 = c001 * (1.0 - xd) + c101 * xd;
+    final num c10 = c010 * (1.0 - xd) + c110 * xd;
+    final num c11 = c011 * (1.0 - xd) + c111 * xd;
 
-    final c0 = c00 * (1.0 - yd) + c10 * yd;
-    final c1 = c01 * (1.0 - yd) + c11 * yd;
+    final num c0 = c00 * (1.0 - yd) + c10 * yd;
+    final num c1 = c01 * (1.0 - yd) + c11 * yd;
 
-    final c = c0 * (1.0 - zd) + c1 * zd;
+    final num c = c0 * (1.0 - zd) + c1 * zd;
 
     return c.toDouble();
   }

@@ -23,17 +23,17 @@ class Depth {
 /// This class used for interaction with Look Up Table
 class LUT {
   /// Title of LUT table stroed at TITLE field
-  String title;
+  String? title;
 
   int sizeOf3DTable = -1;
 
-  Table3D<Colour> table3D;
+  Table3D<Colour>? table3D;
 
   /// The minimum domain value
-  Colour domainMin;
+  Colour? domainMin;
 
   /// The maximum domain value
-  Colour domainMax;
+  Colour? domainMax;
 
   /// The bits per channel
   /// Default value is [Depth.bit8]
@@ -86,13 +86,13 @@ class LUT {
     return LUT._(Stream.fromIterable(str.split('\n')));
   }
 
-  static Future<LUT> loadFromString(String stringData) async {
+  static Future<LUT?> loadFromString(String stringData) async {
     final lut = LUT.fromString(stringData);
     final loaded = await lut.awaitLoading();
     return loaded ? lut : null;
   }
 
-  StreamTransformer<String, LUT> _lutTransformer;
+  late StreamTransformer<String, LUT> _lutTransformer;
 
   StreamSubscription<LUT> _onStringStreamListen(
       Stream<String> input, bool cancelOnError) {
@@ -100,7 +100,7 @@ class LUT {
     var y = 0;
     var x = 0;
 
-    StreamSubscription<String> subscription;
+    late StreamSubscription<String> subscription;
 
     final controller = new StreamController<LUT>(
         onPause: () {
@@ -118,7 +118,7 @@ class LUT {
         (s) {
           try {
             if (!RegExp(PATTERN_DATA).hasMatch(s) && sizeOf3DTable <= 0) {
-              if (title == null || title.isEmpty) {
+              if (title == null || title!.isEmpty) {
                 title = _readTitle(s);
               }
               if (sizeOf3DTable <= 0) {
@@ -139,7 +139,7 @@ class LUT {
 
               final rgb = _readRGB(s);
               if (rgb != null) {
-                table3D.set(x, y, z, rgb);
+                table3D!.set(x, y, z, rgb);
 
                 x++;
                 if (x == sizeOf3DTable) {
@@ -166,7 +166,7 @@ class LUT {
             _isLoadedStreamController.sink.add(!hasErrors &&
                 sizeOf3DTable >= 2 &&
                 table3D != null &&
-                table3D.size == sizeOf3DTable);
+                table3D!.size == sizeOf3DTable);
             _isLoadedStreamController.close();
           }
         },
@@ -196,11 +196,11 @@ class LUT {
 
   static final String PATTERN_TITLE = r'^TITLE\s+("[\w|\s]+"|[\w|\s]+)$';
 
-  static String _readTitle(String s) {
+  static String? _readTitle(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final exp = RegExp(PATTERN_TITLE);
       if (exp.hasMatch(s)) {
-        return exp.firstMatch(s).group(1);
+        return exp.firstMatch(s)!.group(1);
       }
     }
     return null;
@@ -210,7 +210,7 @@ class LUT {
     if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_LUT_3D_SIZE)) {
       final exp = RegExp(PATTERN_LUT_3D_SIZE);
       if (exp.hasMatch(s)) {
-        final size = int.tryParse(exp.firstMatch(s).group(1));
+        final size = int.tryParse(exp.firstMatch(s)!.group(1)!);
         if (size == null) {
           throw FormatException('Size can`t parse to integer value: "$s"');
         }
@@ -222,13 +222,13 @@ class LUT {
     return -1;
   }
 
-  static Colour _readDomainMin(String s) {
+  static Colour? _readDomainMin(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_DOMAIN_MIN)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MIN);
       if (expInputRange.hasMatch(s)) {
-        final r = _validateAndParse(expInputRange.firstMatch(s).group(1));
-        final g = _validateAndParse(expInputRange.firstMatch(s).group(2));
-        final b = _validateAndParse(expInputRange.firstMatch(s).group(3));
+        final r = _validateAndParse(expInputRange.firstMatch(s)!.group(1));
+        final g = _validateAndParse(expInputRange.firstMatch(s)!.group(2));
+        final b = _validateAndParse(expInputRange.firstMatch(s)!.group(3));
 
         return Colour(r, g, b);
       } else {
@@ -238,13 +238,13 @@ class LUT {
     return null;
   }
 
-  static Colour _readDomainMax(String s) {
+  static Colour? _readDomainMax(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_DOMAIN_MAX)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MAX);
       if (expInputRange.hasMatch(s)) {
-        final r = _validateAndParse(expInputRange.firstMatch(s).group(1));
-        final g = _validateAndParse(expInputRange.firstMatch(s).group(2));
-        final b = _validateAndParse(expInputRange.firstMatch(s).group(3));
+        final r = _validateAndParse(expInputRange.firstMatch(s)!.group(1));
+        final g = _validateAndParse(expInputRange.firstMatch(s)!.group(2));
+        final b = _validateAndParse(expInputRange.firstMatch(s)!.group(3));
 
         return Colour(r, g, b);
       } else {
@@ -254,18 +254,18 @@ class LUT {
     return null;
   }
 
-  static Colour _readRGB(String s,
+  static Colour? _readRGB(String s,
       [Colour domainMin = const Colour(0, 0, 0),
       Colour domainMax = const Colour(1, 1, 1)]) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final expInputRange = RegExp(PATTERN_DATA);
       if (expInputRange.hasMatch(s)) {
         final r = _validateAndParse(
-            expInputRange.firstMatch(s).group(1), domainMin.r, domainMax.r);
+            expInputRange.firstMatch(s)!.group(1), domainMin.r, domainMax.r);
         final g = _validateAndParse(
-            expInputRange.firstMatch(s).group(2), domainMin.g, domainMax.g);
+            expInputRange.firstMatch(s)!.group(2), domainMin.g, domainMax.g);
         final b = _validateAndParse(
-            expInputRange.firstMatch(s).group(3), domainMin.b, domainMax.b);
+            expInputRange.firstMatch(s)!.group(3), domainMin.b, domainMax.b);
 
         return Colour(r, g, b);
       } else if (s.isNotEmpty) {
@@ -275,7 +275,7 @@ class LUT {
     return null;
   }
 
-  static double _validateAndParse(String s, [double min, double max]) {
+  static double _validateAndParse(String? s, [double? min, double? max]) {
     if (s == null || s.isEmpty) {
       throw FormatException('Input data shouldn`t be empty or null: "$s"');
     }
@@ -295,19 +295,20 @@ class LUT {
   /// @param intType the type of interpolation chose between speed and accuracy;
   ///
   /// _surprisingly but [List<int>] actualy faster then [Uint8List]_
-  List<int> applySync(List<int> data,
-      [InterpolationType intType = InterpolationType.trilinear]) {
-    final fun = _typedFunction[intType];
+  List<int?> applySync(List<int> data,
+      [InterpolationType? intType = InterpolationType.trilinear]) {
+    final fun = _typedFunction[intType!];
 
-    final dKR = domainMax.r - domainMin.r;
-    final dKG = domainMax.g - domainMin.g;
-    final dKB = domainMax.b - domainMin.b;
+    final dKR = domainMax!.r - domainMin!.r;
+    final dKG = domainMax!.g - domainMin!.g;
+    final dKB = domainMax!.b - domainMin!.b;
 
-    final result = new List<int>(data.length);
+    final result = List<int?>.filled(data.length, null, growable: false);
+    //Null safetyr migrate error
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
         //ignore: avoid_as
-        final rgb = fun(data[i], data[i + 1], data[i + 2]) as Colour;
+        final rgb = fun!(data[i], data[i + 1], data[i + 2]) as Colour;
 
         result[i] = _toIntCh(rgb.r * dKR);
         result[i + 1] = _toIntCh(rgb.g * dKG);
@@ -324,23 +325,23 @@ class LUT {
   /// @param intType the type of interpolation chose between speed and accuracy;
   ///
   /// _surprisingly but [List<int>] actualy faster then [Uint8List]_
-  Future<List<int>> apply(List<int> data, [InterpolationType intType]) async {
+  Future<List<int?>> apply(List<int> data, [InterpolationType? intType]) async {
     return applySync(data, intType);
   }
 
   /// This methods yields [int] output value in RGBA format
   Stream<int> applyAsStream(List<int> data,
-      [InterpolationType intType]) async* {
-    final fun = _typedFunction[intType];
+      [InterpolationType? intType]) async* {
+    final fun = _typedFunction[intType!];
 
-    final dKR = domainMax.r - domainMin.r;
-    final dKG = domainMax.g - domainMin.g;
-    final dKB = domainMax.b - domainMin.b;
+    final dKR = domainMax!.r - domainMin!.r;
+    final dKG = domainMax!.g - domainMin!.g;
+    final dKB = domainMax!.b - domainMin!.b;
 
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
         //ignore: avoid_as
-        final rgb = fun(data[i], data[i + 1], data[i + 2]) as Colour;
+        final rgb = fun!(data[i], data[i + 1], data[i + 2]) as Colour;
 
         yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG),
             _toIntCh(rgb.b * dKB), bpc);
@@ -351,7 +352,7 @@ class LUT {
   int _intRGBA(int r, int g, int b, int a) => a << 24 | b << 16 | g << 8 | r;
 
   // The depth coefficient - (sizeOf3DTable - 1) / bitPerChannel
-  double _k;
+  late double _k;
 
   int _toIntCh(double x) => _clampToChannelSize((x * bpc).floor());
   int _clampToChannelSize(int x) => x.clamp(0, bpc).floor();
@@ -375,14 +376,14 @@ class LUT {
         : _clampToChannelSize((iB + 1).floor());
     final fB0 = iB <= 0 ? 0 : _clampToChannelSize((iB - 1).floor());
 
-    final c000 = table3D.get(fR0, fG0, fB0);
-    final c010 = table3D.get(fR0, fG1, fB0);
-    final c001 = table3D.get(fR0, fG0, fB1);
-    final c011 = table3D.get(fR0, fG1, fB1);
-    final c101 = table3D.get(fR1, fG0, fB1);
-    final c100 = table3D.get(fR1, fG0, fB0);
-    final c110 = table3D.get(fR1, fG1, fB0);
-    final c111 = table3D.get(fR1, fG1, fB1);
+    final c000 = table3D!.get(fR0, fG0, fB0)!;
+    final c010 = table3D!.get(fR0, fG1, fB0)!;
+    final c001 = table3D!.get(fR0, fG0, fB1)!;
+    final c011 = table3D!.get(fR0, fG1, fB1)!;
+    final c101 = table3D!.get(fR1, fG0, fB1)!;
+    final c100 = table3D!.get(fR1, fG0, fB0)!;
+    final c110 = table3D!.get(fR1, fG1, fB0)!;
+    final c111 = table3D!.get(fR1, fG1, fB1)!;
 
     final rx = Interpolation.trilerp(iR, iG, iB, c000.r, c001.r, c010.r, c011.r,
         c100.r, c101.r, c110.r, c111.r, fR0, fR1, fG0, fG1, fB0, fB1);
