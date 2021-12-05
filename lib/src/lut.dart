@@ -58,6 +58,7 @@ class LUT {
         break;
       }
     } on FormatException {
+      print('Dart lut: exception');
       _isLoaded = false;
     }
 
@@ -295,7 +296,7 @@ class LUT {
   /// @param intType the type of interpolation chose between speed and accuracy;
   ///
   /// _surprisingly but [List<int>] actualy faster then [Uint8List]_
-  List<int?> applySync(List<int> data,
+  List<int> applySync(List<int> data,
       [InterpolationType? intType = InterpolationType.trilinear]) {
     final fun = _typedFunction[intType!];
 
@@ -303,7 +304,7 @@ class LUT {
     final dKG = domainMax!.g - domainMin!.g;
     final dKB = domainMax!.b - domainMin!.b;
 
-    final result = List<int?>.filled(data.length, null, growable: false);
+    final result = List<int>.filled(data.length, 0, growable: false);
     //Null safetyr migrate error
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
@@ -316,7 +317,6 @@ class LUT {
         result[i + 3] = bpc;
       }
     }
-
     return result;
   }
 

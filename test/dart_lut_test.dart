@@ -49,7 +49,9 @@ void main() {
 
     test('set value in to table', () {
       final size = 3;
-      final t3d = Table3D<int>(size)..set(2, 2, 2, 5)..set(0, 1, 2, 7);
+      final t3d = Table3D<int>(size)
+        ..set(2, 2, 2, 5)
+        ..set(0, 1, 2, 7);
 
       expect(t3d.get(2, 2, 2), equals(5));
       expect(t3d.get(0, 1, 2), equals(7));
